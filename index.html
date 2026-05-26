@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Game for 5th Grade</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen">
+            <h1>Math Challenge</h1>
+            <img src="assets/mascot.png" alt="Math Owl Mascot" id="mascot">
+            <p>Welcome, 5th Grader! Can you solve the problems?</p>
+            <button id="start-btn" class="chalk-button">Start Game</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen hidden">
+            <div id="stats-bar">
+                <span id="score-display">Score: 0</span>
+                <span id="high-score-display">High Score: 0</span>
+                <span id="lives-display">Lives: ❤️❤️❤️</span>
+            </div>
+
+            <div id="problem-container">
+                <h2 id="question">Loading question...</h2>
+            </div>
+
+            <div id="answer-container">
+                <input type="text" id="answer-input" placeholder="Type your answer..." autocomplete="off">
+                <button id="submit-btn" class="chalk-button">Submit</button>
+            </div>
+
+            <p id="feedback-message"></p>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="screen hidden">
+            <h1>Game Over!</h1>
+            <p id="final-score">Your Score: 0</p>
+            <p id="new-high-score-msg" class="hidden">🎉 New High Score! 🎉</p>
+            <button id="restart-btn" class="chalk-button">Play Again</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
