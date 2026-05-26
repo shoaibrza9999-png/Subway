@@ -1,4 +1,4 @@
-const API_URL = "https://math-game-api.jules-sandbox.workers.dev"; // This will need to be updated after deploy
+const API_URL = "https://math-game-api.shoaibrza9999.workers.dev";
 
 let currentUser = null;
 
