@@ -23,7 +23,7 @@ function formatFraction(num, den) {
     let common = gcd(num, den);
     num = num / common;
     den = den / common;
-
+    
     // Handle negatives
     if (den < 0) {
         num = -num;
@@ -87,7 +87,7 @@ function generateBodmas() {
 function generateFraction() {
     const ops = ['+', '-', '×', '÷'];
     const op = ops[Math.floor(Math.random() * ops.length)];
-
+    
     let num1 = getRandomInt(1, 5);
     let den1 = getRandomInt(2, 6);
     let num2 = getRandomInt(1, 5);
@@ -126,9 +126,11 @@ function generateQuestion() {
     }
 }
 
+
 // --- Game State & Logic ---
 
 let currentQuestion = null;
+let currentMode = null; // 'mcq' or 'numpad'
 let score = 0;
 let highScore = localStorage.getItem('mathGameHighScore') || 0;
 let lives = 3;
@@ -140,18 +142,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const gameOverScreen = document.getElementById("game-over-screen");
 
     const startBtn = document.getElementById("start-btn");
-    const submitBtn = document.getElementById("submit-btn");
     const restartBtn = document.getElementById("restart-btn");
-    const answerInput = document.getElementById("answer-input");
 
     const questionEl = document.getElementById("question");
     const scoreDisplay = document.getElementById("score-display");
     const highScoreDisplay = document.getElementById("high-score-display");
     const livesDisplay = document.getElementById("lives-display");
     const feedbackMsg = document.getElementById("feedback-message");
-
+    
     const finalScoreEl = document.getElementById("final-score");
     const newHighScoreMsg = document.getElementById("new-high-score-msg");
+
+    // New Mixed Input Elements
+    const mcqContainer = document.getElementById("mcq-container");
+    const mcqBtns = document.querySelectorAll(".mcq-btn");
+    
+    const numpadContainer = document.getElementById("numpad-container");
+    const numpadDisplayContainer = document.getElementById("numpad-display-container");
+    const numpadDisplay = document.getElementById("numpad-display");
+    const numpadBtns = document.querySelectorAll(".numpad-btn:not(.action-btn)");
+    const numpadBackspace = document.getElementById("numpad-backspace");
+    const numpadSubmit = document.getElementById("numpad-submit");
 
     // Initialize High Score display
     highScoreDisplay.textContent = `High Score: ${highScore}`;
@@ -163,11 +174,89 @@ document.addEventListener("DOMContentLoaded", () => {
         livesDisplay.textContent = `Lives: ${hearts}`;
     }
 
+    function generateDistractors(correctAnswer) {
+        const distractors = new Set();
+        let isFraction = correctAnswer.includes('/');
+        
+        while(distractors.size < 3) {
+            if (isFraction) {
+                // Generate fake fraction
+                let parts = correctAnswer.split('/');
+                let num = parseInt(parts[0]);
+                let den = parseInt(parts[1]);
+                
+                // mutate slightly
+                let r = Math.random();
+                let fakeNum = num;
+                let fakeDen = den;
+                
+                if (r < 0.3) fakeNum += getRandomInt(1, 3);
+                else if (r < 0.6) fakeDen += getRandomInt(1, 3);
+                else {
+                    fakeNum -= getRandomInt(1, 2);
+                    fakeDen += getRandomInt(1, 2);
+                }
+                
+                if (fakeDen <= 0) fakeDen = 2; // safety
+                let fakeAns = formatFraction(fakeNum, fakeDen);
+                if (fakeAns !== correctAnswer && fakeAns !== "undefined") {
+                    distractors.add(fakeAns);
+                }
+            } else {
+                // Generate fake integer
+                let ansInt = parseInt(correctAnswer);
+                let offset = getRandomInt(-5, 5);
+                if (offset === 0) offset = 1;
+                
+                // sometimes multiply by 10 for common mistakes, or add 10
+                if (Math.random() < 0.2) offset *= 10;
+                
+                let fakeAns = (ansInt + offset).toString();
+                if (fakeAns !== correctAnswer) {
+                    distractors.add(fakeAns);
+                }
+            }
+        }
+        return Array.from(distractors);
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
     function setNextQuestion() {
         currentQuestion = generateQuestion();
         questionEl.textContent = currentQuestion.question + " = ?";
-        answerInput.value = "";
-        answerInput.focus();
+        
+        // Randomly pick mode
+        currentMode = Math.random() < 0.5 ? 'mcq' : 'numpad';
+        
+        if (currentMode === 'mcq') {
+            numpadContainer.classList.add('hidden');
+            numpadDisplayContainer.classList.add('hidden');
+            mcqContainer.classList.remove('hidden');
+            
+            // Setup MCQ buttons
+            const options = generateDistractors(currentQuestion.answer);
+            options.push(currentQuestion.answer);
+            const shuffled = shuffleArray(options);
+            
+            mcqBtns.forEach((btn, index) => {
+                btn.textContent = shuffled[index];
+                btn.onclick = () => handleAnswer(btn.textContent);
+                btn.disabled = false;
+            });
+            
+        } else {
+            mcqContainer.classList.add('hidden');
+            numpadContainer.classList.remove('hidden');
+            numpadDisplayContainer.classList.remove('hidden');
+            numpadDisplay.textContent = "";
+        }
     }
 
     function endGame() {
@@ -185,12 +274,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function checkAnswer() {
-        const userAnswer = answerInput.value.trim().toLowerCase();
-        if (userAnswer === "") return;
+    function handleAnswer(userAnswer) {
+        // Disable buttons temporarily to prevent double clicks
+        if(currentMode === 'mcq') {
+             mcqBtns.forEach(btn => btn.disabled = true);
+        }
 
-        // Strip spaces from user answer (e.g. " 1 / 2 " -> "1/2")
-        const cleanUserAnswer = userAnswer.replace(/\s/g, '');
+        const cleanUserAnswer = userAnswer.trim().toLowerCase().replace(/\s/g, '');
 
         if (cleanUserAnswer === currentQuestion.answer) {
             // Correct
@@ -209,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
             feedbackMsg.textContent = `Oops! The correct answer was ${currentQuestion.answer}`;
             feedbackMsg.className = "incorrect";
             updateStats();
-
+            
             if (lives <= 0) {
                 setTimeout(() => {
                     feedbackMsg.textContent = "";
@@ -236,16 +326,41 @@ document.addEventListener("DOMContentLoaded", () => {
         setNextQuestion();
     });
 
-    submitBtn.addEventListener("click", checkAnswer);
-
-    answerInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            checkAnswer();
-        }
-    });
-
     restartBtn.addEventListener("click", () => {
         gameOverScreen.classList.add("hidden");
         startScreen.classList.remove("hidden");
+    });
+    
+    // Numpad events
+    numpadBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            numpadDisplay.textContent += btn.textContent;
+        });
+    });
+    
+    numpadBackspace.addEventListener("click", () => {
+        numpadDisplay.textContent = numpadDisplay.textContent.slice(0, -1);
+    });
+    
+    numpadSubmit.addEventListener("click", () => {
+        if (numpadDisplay.textContent.length > 0) {
+            handleAnswer(numpadDisplay.textContent);
+        }
+    });
+
+    // Keyboard support for desktop testing
+    document.addEventListener("keydown", (e) => {
+        if (gameScreen.classList.contains("hidden") || currentMode !== 'numpad') return;
+        
+        const validKeys = ['0','1','2','3','4','5','6','7','8','9','-','/'];
+        if (validKeys.includes(e.key)) {
+            numpadDisplay.textContent += e.key;
+        } else if (e.key === "Backspace") {
+            numpadDisplay.textContent = numpadDisplay.textContent.slice(0, -1);
+        } else if (e.key === "Enter") {
+            if (numpadDisplay.textContent.length > 0) {
+                handleAnswer(numpadDisplay.textContent);
+            }
+        }
     });
 });

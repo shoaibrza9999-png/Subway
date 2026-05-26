@@ -23,16 +23,56 @@
                 <span id="high-score-display">High Score: 0</span>
                 <span id="lives-display">Lives: ❤️❤️❤️</span>
             </div>
-
+            
             <div id="problem-container">
                 <h2 id="question">Loading question...</h2>
             </div>
-
+            
+            
             <div id="answer-container">
-                <input type="text" id="answer-input" placeholder="Type your answer..." autocomplete="off">
-                <button id="submit-btn" class="chalk-button">Submit</button>
+                <!-- Numpad Input Display -->
+                <div id="numpad-display-container" class="hidden">
+                    <div id="numpad-display"></div>
+                </div>
+
+                <!-- MCQ Buttons Container -->
+                <div id="mcq-container" class="hidden">
+                    <button class="mcq-btn chalk-button"></button>
+                    <button class="mcq-btn chalk-button"></button>
+                    <button class="mcq-btn chalk-button"></button>
+                    <button class="mcq-btn chalk-button"></button>
+                </div>
+
+                <!-- On-Screen Numpad -->
+                <div id="numpad-container" class="hidden">
+                    <div class="numpad-row">
+                        <button class="numpad-btn chalk-button">1</button>
+                        <button class="numpad-btn chalk-button">2</button>
+                        <button class="numpad-btn chalk-button">3</button>
+                    </div>
+                    <div class="numpad-row">
+                        <button class="numpad-btn chalk-button">4</button>
+                        <button class="numpad-btn chalk-button">5</button>
+                        <button class="numpad-btn chalk-button">6</button>
+                    </div>
+                    <div class="numpad-row">
+                        <button class="numpad-btn chalk-button">7</button>
+                        <button class="numpad-btn chalk-button">8</button>
+                        <button class="numpad-btn chalk-button">9</button>
+                    </div>
+                    <div class="numpad-row">
+                        <button class="numpad-btn chalk-button">-</button>
+                        <button class="numpad-btn chalk-button">0</button>
+                        <button class="numpad-btn chalk-button">/</button>
+                    </div>
+                    <div class="numpad-row action-row">
+                        <button id="numpad-backspace" class="numpad-btn chalk-button action-btn">⌫</button>
+                        <button id="numpad-submit" class="numpad-btn chalk-button action-btn">Submit</button>
+                    </div>
+                </div>
             </div>
 
+            
             <p id="feedback-message"></p>
         </div>
 
