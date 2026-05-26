@@ -8,21 +8,67 @@
 </head>
 <body>
     <div id="game-container">
+        
         <!-- Start Screen -->
         <div id="start-screen" class="screen">
             <h1>Math Challenge</h1>
             <img src="assets/mascot.png" alt="Math Owl Mascot" id="mascot">
-            <p>Welcome, 5th Grader! Can you solve the problems?</p>
-            <button id="start-btn" class="chalk-button">Start Game</button>
+            <p>Welcome, 5th Grader!</p>
+            
+            <div class="options-container">
+                <div class="option-group">
+                    <label>Mode:</label>
+                    <select id="mode-select" class="chalk-select">
+                        <option value="survival">Survival (3 Lives)</option>
+                        <option value="time">Time Attack (60s)</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label>Difficulty:</label>
+                    <select id="diff-select" class="chalk-select">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label>Category:</label>
+                    <select id="cat-select" class="chalk-select">
+                        <option value="mixed">Mixed</option>
+                        <option value="bodmas">BODMAS Only</option>
+                        <option value="fractions">Fractions Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="start-actions">
+                <button id="start-btn" class="chalk-button">Start Game</button>
+                <button id="stats-btn" class="chalk-button">View Stats</button>
+            </div>
+        </div>
+
+        <!-- Stats Screen -->
+        <div id="stats-screen" class="screen hidden">
+            <h1>Your Progress</h1>
+            <img src="assets/mascot.png" alt="Math Owl Mascot" id="mascot-stats" style="max-width:100px; margin-bottom:10px;">
+            <div class="stats-board">
+                <p>Total Answered: <span id="stat-total">0</span></p>
+                <p>Total Correct: <span id="stat-correct">0</span></p>
+                <p>Accuracy: <span id="stat-accuracy">0%</span></p>
+                <p>Highest Streak: <span id="stat-streak">0</span></p>
+            </div>
+            <button id="back-to-menu-btn" class="chalk-button">Back to Menu</button>
         </div>
 
         <!-- Game Screen -->
         <div id="game-screen" class="screen hidden">
+            
             <div id="stats-bar">
-                <span id="score-display">Score: 0</span>
+                <span id="score-display">Score: 0 <span id="combo-display" class="hidden"></span></span>
                 <span id="high-score-display">High Score: 0</span>
                 <span id="lives-display">Lives: ❤️❤️❤️</span>
             </div>
+
             
             <div id="problem-container">
                 <h2 id="question">Loading question...</h2>

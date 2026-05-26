@@ -240,3 +240,73 @@ p {
     flex: 2;
     background-color: rgba(46, 204, 113, 0.4); /* subtle green tint */
 }
+
+/* Settings and Options Styles */
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+    width: 100%;
+    max-width: 400px;
+}
+
+.option-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.5rem;
+}
+
+.chalk-select {
+    background-color: #2F593E;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.2rem;
+    padding: 5px;
+    outline: none;
+    cursor: pointer;
+}
+
+.chalk-select option {
+    background-color: #2b2b2b;
+}
+
+.start-actions {
+    display: flex;
+    gap: 15px;
+}
+
+/* Stats Screen */
+.stats-board {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #ffd700;
+    margin-bottom: 20px;
+    text-align: left;
+    width: 100%;
+    max-width: 300px;
+}
+
+.stats-board p {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+/* Combo multiplier styles */
+#combo-display {
+    color: #ff9800;
+    font-size: 1.2rem;
+    margin-left: 5px;
+    animation: pop 0.3s ease-in-out;
+}
