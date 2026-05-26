@@ -9,8 +9,23 @@
 <body>
     <div id="game-container">
         
+        
+        <!-- Login/Auth Screen -->
+        <div id="auth-screen" class="screen">
+            <h1>Login to Play</h1>
+            <p style="margin-bottom:20px; font-size:1.2rem;">Create an account or login below.</p>
+            <div class="settings-group">
+                <input type="text" id="username-input" class="chalk-input" placeholder="Your Name" />
+            </div>
+            <div class="settings-group">
+                <input type="password" id="password-input" class="chalk-input" placeholder="Password" />
+            </div>
+            <p id="auth-error" style="color:#ff6b6b; min-height: 24px; margin-bottom: 15px;"></p>
+            <button id="login-btn" class="chalk-button">Login / Signup</button>
+        </div>
+
         <!-- Start Screen -->
-        <div id="start-screen" class="screen">
+        <div id="start-screen" class="screen hidden">
             <h1>Math Challenge</h1>
             <img src="assets/mascot.png" alt="Math Owl Mascot" id="mascot">
             <p>Welcome, 5th Grader!</p>
@@ -120,6 +135,7 @@
 
             
             <p id="feedback-message"></p>
+            <button id="next-question-btn" class="chalk-button hidden">Next Question</button>
         </div>
 
         <!-- Game Over Screen -->
@@ -131,6 +147,7 @@
         </div>
     </div>
 
+    <script src="auth.js"></script>
     <script src="game.js"></script>
 </body>
 </html>

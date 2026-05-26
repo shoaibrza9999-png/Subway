@@ -198,6 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const highScoreDisplay = document.getElementById("high-score-display");
     const livesDisplay = document.getElementById("lives-display");
     const feedbackMsg = document.getElementById("feedback-message");
+    const nextQuestionBtn = document.getElementById("next-question-btn");
     const mascot = document.getElementById("mascot");
     
     // Inputs
@@ -241,6 +242,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setNextQuestion() {
+        nextQuestionBtn.classList.add("hidden");
+        feedbackMsg.textContent = "";
+        feedbackMsg.className = "";
         currentQuestion = generateQuestion();
         questionEl.textContent = currentQuestion.question + " = ?";
         currentMode = Math.random() < 0.5 ? 'mcq' : 'numpad';
@@ -289,6 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         stats.totalAnswered++;
         const cleanAns = userAnswer.trim().toLowerCase().replace(/\s/g, '');
+        queueAnswer(currentQuestion.question, cleanAns, currentQuestion.answer, cleanAns === currentQuestion.answer);
 
         if (cleanAns === currentQuestion.answer) {
             stats.totalCorrect++;
@@ -316,19 +321,25 @@ document.addEventListener("DOMContentLoaded", () => {
         updateStatsUI();
         saveStats();
 
-        let delay = (cleanAns === currentQuestion.answer) ? 800 : 1500;
-        
         if (gameConfig.mode === 'survival' && lives <= 0) {
-            setTimeout(endGame, delay);
+            setTimeout(endGame, 1500);
+            return;
+        }
+
+        if (cleanAns !== currentQuestion.answer && gameConfig.mode === 'survival') {
+            nextQuestionBtn.classList.remove("hidden");
         } else {
+            let delay = (cleanAns === currentQuestion.answer) ? 800 : 1500;
             setTimeout(() => {
-                feedbackMsg.textContent = "";
-                feedbackMsg.className = "";
                 if(gameConfig.mode === 'time' && timeLeft <= 0) endGame();
                 else setNextQuestion();
             }, delay);
         }
     }
+
+    nextQuestionBtn.addEventListener("click", () => {
+        setNextQuestion();
+    });
 
     // --- Events ---
     startBtn.addEventListener("click", () => {
@@ -338,6 +349,9 @@ document.addEventListener("DOMContentLoaded", () => {
         gameConfig.cat = catSelect.value;
         
         score = 0; streak = 0;
+        feedbackMsg.textContent = "";
+        feedbackMsg.className = "";
+        nextQuestionBtn.classList.add("hidden");
         lives = 3; timeLeft = 60;
         
         if (gameConfig.mode === 'time') {
