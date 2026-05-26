@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Game - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #fff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+        th {
+            font-size: 1.2rem;
+            color: #ffd700;
+        }
+        .status-complete { color: #4CAF50; font-weight: bold; }
+        .status-incomplete { color: #ff6b6b; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="chalkboard-bg" id="app">
+        <div class="admin-container">
+            <h1>Teacher Dashboard</h1>
+            <button class="chalk-button" onclick="window.location.href='index.html'" style="margin-bottom: 20px;">Back to Game</button>
+            <div id="loading">Loading stats...</div>
+            <table id="stats-table" class="hidden">
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Total Solved</th>
+                        <th>Today's Solved</th>
+                        <th>Daily Status (50 req)</th>
+                    </tr>
+                </thead>
+                <tbody id="stats-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', async () => {
+            const user = checkStoredAuth();
+            if (!user || user.role !== 'admin') {
+                document.body.innerHTML = '<div style="color:white;text-align:center;margin-top:50px;">Access Denied. Admins only.</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/admin/stats`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const tbody = document.getElementById('stats-body');
+                    const now = new Date();
+                    // Check if past 9 PM IST
+                    const istOffset = 5.5 * 60 * 60 * 1000;
+                    const nowIst = new Date(now.getTime() + istOffset);
+                    const isPastDeadline = nowIst.getUTCHours() >= 21; // 9 PM
+
+                    data.students.forEach(student => {
+                        const tr = document.createElement('tr');
+
+                        let statusText = "In Progress";
+                        let statusClass = "";
+
+                        if (student.today_answers >= 50) {
+                            statusText = "Complete";
+                            statusClass = "status-complete";
+                        } else if (isPastDeadline) {
+                            statusText = "Not Complete";
+                            statusClass = "status-incomplete";
+                        }
+
+                        tr.innerHTML = `
+                            <td>${student.username}</td>
+                            <td>${student.total_answers}</td>
+                            <td>${student.today_answers}</td>
+                            <td class="${statusClass}">${statusText}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('stats-table').classList.remove('hidden');
+                }
+            } catch (err) {
+                document.getElementById('loading').textContent = "Failed to load stats.";
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>

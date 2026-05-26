@@ -310,3 +310,24 @@ p {
     margin-left: 5px;
     animation: pop 0.3s ease-in-out;
 }
+
+/* Auth Input Styles */
+.chalk-input {
+    width: 80%;
+    max-width: 300px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: transparent;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    color: #fff;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+    font-size: 1.2rem;
+    outline: none;
+}
+.chalk-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+.chalk-input:focus {
+    border-color: #ffd700;
+}
