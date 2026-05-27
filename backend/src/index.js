@@ -1,11 +1,21 @@
 import { AutoRouter, cors } from 'itty-router';
 
-const { preflight, corsify } = cors({ origin: '*' });
+// Create cors instance with explicit wildcard origin config
+const { preflight, corsify } = cors({
+    origin: '*',
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    exposeHeaders: ['Content-Type'],
+    maxAge: 86400
+});
 
 const router = AutoRouter({
   before: [preflight],
   finally: [corsify],
 });
+
+// Explicitly handle all OPTIONS requests
+router.options('*', preflight);
 
 router.get('/', () => new Response('Math Game API is running!'));
 
