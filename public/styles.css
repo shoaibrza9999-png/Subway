@@ -317,16 +317,16 @@ p {
     max-width: 300px;
     padding: 10px;
     margin-bottom: 10px;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.1);
     border: 2px solid #fff;
     border-radius: 8px;
     color: #fff;
-    font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+    font-family: 'Patrick Hand', cursive;
     font-size: 1.2rem;
     outline: none;
 }
 .chalk-input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.9);
 }
 .chalk-input:focus {
     border-color: #ffd700;
