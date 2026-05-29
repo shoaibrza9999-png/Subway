@@ -174,6 +174,140 @@ function saveStats() {
 
 // --- DOM Binding ---
 document.addEventListener("DOMContentLoaded", () => {
+
+    // --- Auth Logic ---
+    const authScreen = document.getElementById("auth-screen");
+    const menuScreen = document.getElementById("start-screen");
+    const loginBtn = document.getElementById("login-btn");
+    const usernameInput = document.getElementById("username-input");
+    const passwordInput = document.getElementById("password-input");
+    const authError = document.getElementById("auth-error");
+
+    const authTitle = document.getElementById("auth-title");
+    const authSubtitle = document.getElementById("auth-subtitle");
+    const toggleAuthMode = document.getElementById("toggle-auth-mode");
+
+    let isLoginMode = true;
+
+    if (toggleAuthMode) {
+        toggleAuthMode.addEventListener("click", () => {
+            isLoginMode = !isLoginMode;
+            if (isLoginMode) {
+                authTitle.textContent = "Login to Play";
+                authSubtitle.textContent = "Welcome back! Enter your details.";
+                loginBtn.textContent = "Login";
+                toggleAuthMode.innerHTML = 'Don\'t have an account? <span style="text-decoration: underline;">Register</span>';
+            } else {
+                authTitle.textContent = "Create Account";
+                authSubtitle.textContent = "Join the fun! Pick a name and password.";
+                loginBtn.textContent = "Register";
+                toggleAuthMode.innerHTML = 'Already have an account? <span style="text-decoration: underline;">Login</span>';
+            }
+            authError.textContent = "";
+        });
+    }
+
+    async function handleAuth() {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        
+        if (!username || !password) {
+            authError.textContent = "Please enter name and password.";
+            return;
+        }
+
+        loginBtn.disabled = true;
+        loginBtn.textContent = "Loading...";
+        authError.textContent = "";
+        
+        let result;
+        if (isLoginMode) {
+            result = await loginUser(username, password);
+        } else {
+            result = await registerUser(username, password);
+        }
+        
+        if (result.success) {
+            authScreen.classList.add("hidden");
+            menuScreen.classList.remove("hidden");
+            
+            // Populate stats if fetched during login
+            if (result.stats) {
+                stats.totalAnswered = result.stats.totalAnswered || 0;
+                stats.totalCorrect = result.stats.totalCorrect || 0;
+                stats.highestStreak = 0; // Highest streak isn't saved in DB currently, reset it
+                saveStats(); // Save to local storage for game usage
+            }
+
+            if (result.user.role === 'admin' && document.querySelector('#start-screen .button-group')) {
+                const adminBtn = document.createElement('button');
+                adminBtn.className = 'chalk-button';
+                adminBtn.textContent = 'Admin Dashboard';
+                adminBtn.onclick = () => window.location.href = 'admin.html';
+                document.querySelector('#start-screen .button-group').appendChild(adminBtn);
+            }
+        } else {
+            // Check if offline and matches previous
+            const stored = localStorage.getItem('mathGameUser');
+            if (isLoginMode && stored && !navigator.onLine) {
+                 const prev = JSON.parse(stored);
+                 if (prev.username === username.toLowerCase()) {
+                     currentUser = prev;
+                     authScreen.classList.add("hidden");
+                     menuScreen.classList.remove("hidden");
+                 } else {
+                     authError.textContent = "Offline. Can only login as previous user.";
+                 }
+            } else {
+                authError.textContent = result.error || "Authentication failed.";
+            }
+        }
+        
+        loginBtn.disabled = false;
+        loginBtn.textContent = isLoginMode ? "Login" : "Register";
+    }
+
+    if (loginBtn) {
+        loginBtn.addEventListener("click", handleAuth);
+    }
+
+    // Auto-login
+    const autoLogin = async () => {
+        const user = checkStoredAuth();
+        if (user) {
+            if (authScreen) authScreen.classList.add("hidden");
+            if (menuScreen) menuScreen.classList.remove("hidden");
+        } else {
+            if (authScreen) authScreen.classList.remove("hidden");
+            if (menuScreen) menuScreen.classList.add("hidden");
+        }
+        if (user) {
+            // Optionally fetch latest stats on auto-login if online
+            if (navigator.onLine && user.role !== 'admin') {
+               try {
+                   const res = await fetch(`${API_URL}/stats/${user.id}`);
+                   const data = await res.json();
+                   if (data.success) {
+                       stats.totalAnswered = data.totalAnswered || 0;
+                       stats.totalCorrect = data.totalCorrect || 0;
+                       saveStats();
+                   }
+               } catch(e) { console.log('Failed to fetch latest stats', e); }
+            }
+
+            if (user.role === 'admin' && document.querySelector('#start-screen .button-group')) {
+                const adminBtn = document.createElement('button');
+                adminBtn.className = 'chalk-button';
+                adminBtn.textContent = 'Admin Dashboard';
+                adminBtn.onclick = () => window.location.href = 'admin.html';
+                document.querySelector('#start-screen .button-group').appendChild(adminBtn);
+            }
+            attemptSync();
+        }
+    };
+    autoLogin();
+
+
     // Screens
     const startScreen = document.getElementById("start-screen");
     const gameScreen = document.getElementById("game-screen");

@@ -19,8 +19,38 @@ router.options('*', preflight);
 
 router.get('/', () => new Response('Math Game API is running!'));
 
-// --- Authentication ---
-router.post('/auth', async (request, env) => {
+// --- Register ---
+router.post('/register', async (request, env) => {
+    try {
+        const { username, password } = await request.json();
+        const lowerUsername = username.toLowerCase().trim();
+
+        if (!lowerUsername || !password) {
+            return new Response(JSON.stringify({ error: "Username and password required" }), { status: 400 });
+        }
+
+        // Check if user exists
+        let user = await env.DB.prepare("SELECT * FROM users WHERE username = ?")
+            .bind(lowerUsername)
+            .first();
+
+        if (user) {
+            return new Response(JSON.stringify({ error: "Username already exists" }), { status: 400 });
+        }
+
+        // Create user
+        const result = await env.DB.prepare("INSERT INTO users (username, password) VALUES (?, ?) RETURNING *")
+            .bind(lowerUsername, password)
+            .first();
+        
+        return new Response(JSON.stringify({ success: true, user: { id: result.id, username: result.username, role: result.role } }), { status: 200 });
+    } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    }
+});
+
+// --- Login ---
+router.post('/login', async (request, env) => {
     try {
         const { username, password } = await request.json();
         const lowerUsername = username.toLowerCase().trim();
@@ -35,19 +65,31 @@ router.post('/auth', async (request, env) => {
             .first();
 
         if (!user) {
-            // Create user if they don't exist
-            const result = await env.DB.prepare("INSERT INTO users (username, password) VALUES (?, ?) RETURNING *")
-                .bind(lowerUsername, password)
-                .first();
-            user = result;
-        } else {
-            // Check password if they do exist
-            if (user.password !== password) {
-                return new Response(JSON.stringify({ error: "Invalid password" }), { status: 401 });
-            }
+             return new Response(JSON.stringify({ error: "User not found" }), { status: 401 });
         }
 
-        return new Response(JSON.stringify({ success: true, user: { id: user.id, username: user.username, role: user.role } }), { status: 200 });
+        // Check password
+        if (user.password !== password) {
+            return new Response(JSON.stringify({ error: "Invalid password" }), { status: 401 });
+        }
+        
+        // Fetch stats
+        const stats = await env.DB.prepare(`
+            SELECT 
+                COUNT(*) as total_answered,
+                SUM(is_correct) as total_correct
+            FROM answers_log
+            WHERE user_id = ?
+        `).bind(user.id).first();
+
+        return new Response(JSON.stringify({ 
+            success: true, 
+            user: { id: user.id, username: user.username, role: user.role },
+            stats: {
+                totalAnswered: stats.total_answered || 0,
+                totalCorrect: stats.total_correct || 0
+            }
+        }), { status: 200 });
     } catch (err) {
         return new Response(JSON.stringify({ error: err.message }), { status: 500 });
     }

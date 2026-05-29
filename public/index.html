@@ -10,10 +10,12 @@
     <div id="game-container">
         
         
+        
+        
         <!-- Login/Auth Screen -->
         <div id="auth-screen" class="screen">
-            <h1>Login to Play</h1>
-            <p style="margin-bottom:20px; font-size:1.2rem;">Create an account or login below.</p>
+            <h1 id="auth-title">Login to Play</h1>
+            <p id="auth-subtitle" style="margin-bottom:20px; font-size:1.2rem;">Welcome back! Enter your details.</p>
             <div class="settings-group">
                 <input type="text" id="username-input" class="chalk-input" placeholder="Your Name" />
             </div>
@@ -21,7 +23,8 @@
                 <input type="password" id="password-input" class="chalk-input" placeholder="Password" />
             </div>
             <p id="auth-error" style="color:#ff6b6b; min-height: 24px; margin-bottom: 15px;"></p>
-            <button id="login-btn" class="chalk-button">Login / Signup</button>
+            <button id="login-btn" class="chalk-button">Login</button>
+            <p style="margin-top: 20px; font-size: 0.9rem; color: #aaa; cursor: pointer;" id="toggle-auth-mode">Don't have an account? <span style="text-decoration: underline;">Register</span></p>
         </div>
 
         <!-- Start Screen -->

@@ -1,10 +1,33 @@
-const API_URL = "https://math-game-api.shoaibrza9999.workers.dev";
+const API_URL = "https://math-game-api.shoaibrza9999.workers.dev"; 
 
 let currentUser = null;
 
 async function loginUser(username, password) {
     try {
-        const response = await fetch(`${API_URL}/auth`, {
+        const response = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            currentUser = data.user;
+            localStorage.setItem('mathGameUser', JSON.stringify(currentUser));
+            return { success: true, user: currentUser, stats: data.stats };
+        } else {
+            return { success: false, error: data.error };
+        }
+    } catch (err) {
+        console.error("Login failed:", err);
+        return { success: false, error: "Network error. Will try offline login if previously logged in." };
+    }
+}
+
+async function registerUser(username, password) {
+    try {
+        const response = await fetch(`${API_URL}/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -20,8 +43,8 @@ async function loginUser(username, password) {
             return { success: false, error: data.error };
         }
     } catch (err) {
-        console.error("Login failed:", err);
-        return { success: false, error: "Network error. Will try offline login if previously logged in." };
+        console.error("Registration failed:", err);
+        return { success: false, error: "Network error during registration." };
     }
 }
 
