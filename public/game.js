@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const authSubtitle = document.getElementById("auth-subtitle");
     const toggleAuthMode = document.getElementById("toggle-auth-mode");
 
-    let isLoginMode = true;
+let isLoginMode = true;
 
     if (toggleAuthMode) {
         toggleAuthMode.addEventListener("click", () => {
@@ -195,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (isLoginMode) {
                 authTitle.textContent = "Login to Play";
                 authSubtitle.textContent = "Welcome back! Enter your details.";
-                loginBtn.textContent = "Login";
+                loginBtn.textContent = "Login / Signup";
                 toggleAuthMode.innerHTML = 'Don\'t have an account? <span style="text-decoration: underline;">Register</span>';
             } else {
                 authTitle.textContent = "Create Account";
@@ -208,6 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function handleAuth() {
+        console.log("Handle auth clicked, mode:", isLoginMode);
         const username = usernameInput.value.trim();
         const password = passwordInput.value;
         
@@ -222,8 +223,19 @@ document.addEventListener("DOMContentLoaded", () => {
         
         let result;
         if (isLoginMode) {
+            console.log("Attempting login...");
             result = await loginUser(username, password);
+            console.log("Login result:", result);
+            
+            // If login fails because user not found, automatically register them as a fallback
+            // since the user wants a seamless "Login / Signup" button experience where one button does both.
+            if (!result.success && result.error && result.error.includes("User not found")) {
+                console.log("User not found during login. Attempting registration fallback...");
+                result = await registerUser(username, password);
+                console.log("Fallback registration result:", result);
+            }
         } else {
+            console.log("Attempting explicit registration...");
             result = await registerUser(username, password);
         }
         
@@ -264,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         
         loginBtn.disabled = false;
-        loginBtn.textContent = isLoginMode ? "Login" : "Register";
+        loginBtn.textContent = isLoginMode ? "Login / Signup" : "Register";
     }
 
     if (loginBtn) {
