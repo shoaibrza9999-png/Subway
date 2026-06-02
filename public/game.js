@@ -470,8 +470,7 @@ let isLoginMode = true;
     // Game UI
     const questionEl = document.getElementById("question");
     const scoreDisplay = document.getElementById("score-display");
-        const highScoreDisplay = document.getElementById("high-score-display");
-    const livesDisplay = document.getElementById("lives-display");
+            const livesDisplay = document.getElementById("lives-display");
     const feedbackMsg = document.getElementById("feedback-message");
     const nextQuestionBtn = document.getElementById("next-question-btn");
     const mascot = document.getElementById("mascot");
@@ -485,8 +484,6 @@ let isLoginMode = true;
     const numpadBtns = document.querySelectorAll(".numpad-btn:not(.action-btn)");
     const numpadBackspace = document.getElementById("numpad-backspace");
     const numpadSubmit = document.getElementById("numpad-submit");
-
-    highScoreDisplay.textContent = `High Score: ${stats.highScore}`;
 
 
     function updateStatsUI() {
@@ -559,7 +556,6 @@ let isLoginMode = true;
         if (score > stats.highScore) {
             stats.highScore = score;
             document.getElementById("new-high-score-msg").classList.remove("hidden");
-            highScoreDisplay.textContent = `High Score: ${stats.highScore}`;
         } else {
             document.getElementById("new-high-score-msg").classList.add("hidden");
         }
