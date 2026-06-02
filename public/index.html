@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Game for 5th Grade</title>
+    <title>Endless Math Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -31,34 +31,17 @@
         <div id="start-screen" class="screen hidden">
             <h1>Math Challenge</h1>
             <img src="assets/mascot.png" alt="Math Owl Mascot" id="mascot">
-            <p>Welcome, 5th Grader!</p>
+            <p>Welcome!</p>
+            
             
             <div class="options-container">
                 <div class="option-group">
                     <label>Mode:</label>
                     <select id="mode-select" class="chalk-select">
                         <option value="survival">Survival (3 Lives)</option>
-                        <option value="time">Time Attack (60s)</option>
-                    </select>
-                </div>
-                <div class="option-group">
-                    <label>Difficulty:</label>
-                    <select id="diff-select" class="chalk-select">
-                        <option value="easy">Easy</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="hard">Hard</option>
-                    </select>
-                </div>
-                <div class="option-group">
-                    <label>Category:</label>
-                    <select id="cat-select" class="chalk-select">
-                        <option value="mixed">Mixed</option>
-                        <option value="bodmas">BODMAS Only</option>
-                        <option value="fractions">Fractions Only</option>
                     </select>
                 </div>
             </div>
-
             <div class="start-actions">
                 <button id="start-btn" class="chalk-button">Start Game</button>
                 <button id="stats-btn" class="chalk-button">View Stats</button>
@@ -81,11 +64,13 @@
         <!-- Game Screen -->
         <div id="game-screen" class="screen hidden">
             
+            
             <div id="stats-bar">
                 <span id="score-display">Score: 0 <span id="combo-display" class="hidden"></span></span>
-                <span id="high-score-display">High Score: 0</span>
+                <span id="grade-display">Grade: 4</span>
                 <span id="lives-display">Lives: ❤️❤️❤️</span>
             </div>
+
 
             
             <div id="problem-container">
@@ -124,11 +109,14 @@
                         <button class="numpad-btn chalk-button">8</button>
                         <button class="numpad-btn chalk-button">9</button>
                     </div>
+                    
                     <div class="numpad-row">
                         <button class="numpad-btn chalk-button">-</button>
                         <button class="numpad-btn chalk-button">0</button>
                         <button class="numpad-btn chalk-button">/</button>
+                        <button class="numpad-btn chalk-button">.</button>
                     </div>
+
                     <div class="numpad-row action-row">
                         <button id="numpad-backspace" class="numpad-btn chalk-button action-btn">⌫</button>
                         <button id="numpad-submit" class="numpad-btn chalk-button action-btn">Submit</button>

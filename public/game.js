@@ -24,12 +24,17 @@ let currentQuestion = null;
 let currentMode = null; // input mode: 'mcq' or 'numpad'
 let gameConfig = { mode: 'survival', diff: 'medium', cat: 'mixed' };
 
+
 // Game Session
 let score = 0;
 let lives = 3;
 let timeLeft = 60;
 let timerInterval = null;
 let streak = 0;
+let gradeLevel = 4.0;
+let consecutiveCorrect = 0;
+let consecutiveWrong = 0;
+
 
 // Persistent Stats
 let stats = JSON.parse(localStorage.getItem('mathGameStats')) || {
@@ -73,70 +78,188 @@ function playSound(type) {
     }
 }
 
-// --- Generators ---
-function getDiffMultipliers() {
-    if (gameConfig.diff === 'easy') return { maxAdd: 10, maxMul: 5 };
-    if (gameConfig.diff === 'hard') return { maxAdd: 50, maxMul: 15 };
-    return { maxAdd: 20, maxMul: 9 }; // medium
-}
 
-function generateBodmas() {
-    const { maxAdd, maxMul } = getDiffMultipliers();
+// --- Generators ---
+
+function generateGrade4() {
     const templates = [
-        () => { // a + b * c
-            const a = getRandomInt(1, maxAdd);
-            const b = getRandomInt(2, maxMul);
-            const c = getRandomInt(2, maxMul);
-            return { question: `${a} + ${b} × ${c}`, answer: `${a + b * c}` };
+        () => { // Multiplication
+            const x = getRandomInt(10, 99);
+            const y = getRandomInt(2, 9);
+            return { question: `${x} × ${y}`, answer: `${x * y}` };
         },
-        () => { // (a + b) * c
-            const a = getRandomInt(1, maxAdd/2);
-            const b = getRandomInt(1, maxAdd/2);
-            const c = getRandomInt(2, maxMul);
-            return { question: `(${a} + ${b}) × ${c}`, answer: `${(a + b) * c}` };
+        () => { // Long Division
+            const y = getRandomInt(2, 9);
+            const ans = getRandomInt(11, 111);
+            const x = y * ans;
+            return { question: `${x} ÷ ${y}`, answer: `${ans}` };
         },
-        () => { // a * b - c
-            const a = getRandomInt(2, maxMul);
-            const b = getRandomInt(2, maxMul);
-            const c = getRandomInt(1, maxAdd);
-            return { question: `${a} × ${b} - ${c}`, answer: `${a * b - c}` };
+        () => { // Equivalent Fractions
+            let num = getRandomInt(1, 5);
+            let den = getRandomInt(num + 1, 12);
+            let multiplier = getRandomInt(2, 4);
+            return { question: `${num}/${den} = ?/${den * multiplier}`, answer: `${num * multiplier}` };
+        },
+        () => { // Estimation
+            const x = getRandomInt(100, 9999);
+            const rounded = Math.round(x / 100) * 100;
+            return { question: `Round ${x} to nearest 100`, answer: `${rounded}` };
         }
     ];
     return templates[Math.floor(Math.random() * templates.length)]();
 }
 
-function generateFraction() {
-    const ops = ['+', '-', '×', '÷'];
-    const op = ops[Math.floor(Math.random() * ops.length)];
-    const maxNum = gameConfig.diff === 'easy' ? 4 : (gameConfig.diff === 'hard' ? 9 : 6);
-    
-    let num1 = getRandomInt(1, maxNum-1); let den1 = getRandomInt(2, maxNum);
-    let num2 = getRandomInt(1, maxNum-1); let den2 = getRandomInt(2, maxNum);
-    
-    // Easy mode keeps common denominators for add/sub
-    if (gameConfig.diff === 'easy' && (op === '+' || op === '-')) {
-        den2 = den1;
-    }
+function generateGrade5() {
+    const templates = [
+        () => { // Decimal Addition
+            const x = getRandomInt(10, 99) / 10;
+            const y = getRandomInt(100, 999) / 100;
+            const ans = (x + y).toFixed(2);
+            return { question: `${x.toFixed(1)} + ${y.toFixed(2)}`, answer: `${parseFloat(ans)}` }; // Avoid trailing zeros
+        },
+        () => { // Fraction Addition
+            const dens = [2, 3, 4, 5, 6, 8];
+            const den1 = dens[Math.floor(Math.random() * dens.length)];
+            const den2 = dens[Math.floor(Math.random() * dens.length)];
+            const num1 = getRandomInt(1, den1 - 1);
+            const num2 = getRandomInt(1, den2 - 1);
+            const aNum = num1 * den2 + num2 * den1;
+            const aDen = den1 * den2;
+            return { question: `${num1}/${den1} + ${num2}/${den2}`, answer: formatFraction(aNum, aDen) };
+        },
+        () => { // Volume
+            const l = getRandomInt(2, 10);
+            const w = getRandomInt(2, 10);
+            const h = getRandomInt(2, 10);
+            return { question: `Volume: ${l}×${w}×${h}`, answer: `${l * w * h}` };
+        },
+        () => { // Order of Operations
+            const a = getRandomInt(2, 10);
+            const b = getRandomInt(2, 10);
+            const c = getRandomInt(2, 10);
+            const d = getRandomInt(1, a * (b + c) - 1);
+            return { question: `${a} × (${b} + ${c}) - ${d}`, answer: `${a * (b + c) - d}` };
+        }
+    ];
+    return templates[Math.floor(Math.random() * templates.length)]();
+}
 
-    let aNum, aDen;
-    if (op === '+') { aNum = num1*den2 + num2*den1; aDen = den1*den2; }
-    else if (op === '-') { aNum = num1*den2 - num2*den1; aDen = den1*den2; }
-    else if (op === '×') { aNum = num1*num2; aDen = den1*den2; }
-    else { aNum = num1*den2; aDen = den1*num2; } // ÷
+function generateGrade6() {
+    const templates = [
+        () => { // Ratios
+            const common = getRandomInt(2, 5);
+            const a = getRandomInt(1, 6) * common;
+            const b = getRandomInt(1, 6) * common;
+            const factor = gcd(a, b);
+            return { question: `Ratio ${a}:${b} in simplest form`, answer: `${a/factor}/${b/factor}` };
+        },
+        () => { // Percentages
+            const p = [10, 20, 25, 50, 75][Math.floor(Math.random() * 5)];
+            const x = getRandomInt(2, 15) * 10;
+            return { question: `${p}% of ${x}`, answer: `${(p * x) / 100}` };
+        },
+        () => { // Negative Integers
+            const x = getRandomInt(1, 20);
+            const y = getRandomInt(1, 20);
+            return { question: `-${x} - (-${y})`, answer: `${-x + y}` };
+        },
+        () => { // One-Step Equations
+            const a = getRandomInt(1, 50);
+            const ans = getRandomInt(1, 50);
+            const b = ans + a;
+            return { question: `Solve for x: x + ${a} = ${b}`, answer: `${ans}` };
+        },
+        () => { // Median
+            let arr = [];
+            for(let i=0; i<5; i++) arr.push(getRandomInt(1, 20));
+            arr.sort((a,b) => a-b);
+            return { question: `Median of ${arr.join(', ')}`, answer: `${arr[2]}` };
+        }
+    ];
+    return templates[Math.floor(Math.random() * templates.length)]();
+}
 
-    return { question: `${num1}/${den1} ${op} ${num2}/${den2}`, answer: formatFraction(aNum, aDen) };
+function generateGrade7() {
+    const templates = [
+        () => { // Two-Step Equations
+            const a = getRandomInt(2, 10);
+            const ans = getRandomInt(1, 15);
+            const b = getRandomInt(1, 20);
+            const c = a * ans + b;
+            return { question: `Solve for x: ${a}x + ${b} = ${c}`, answer: `${ans}` };
+        },
+        () => { // Percent Discount
+            const price = getRandomInt(2, 20) * 10;
+            const d = [10, 15, 20, 25, 50][Math.floor(Math.random() * 5)];
+            return { question: `$${price} item is ${d}% off. New price?`, answer: `${price - (price * d / 100)}` };
+        },
+        () => { // Proportions
+            const cost3 = getRandomInt(1, 10) * 3;
+            const b = getRandomInt(2, 10);
+            return { question: `3 cost $${cost3}. How much do ${b} cost?`, answer: `${(cost3 / 3) * b}` };
+        },
+        () => { // Circle Area
+            const r = getRandomInt(1, 10);
+            const ans = (3.14 * r * r).toFixed(2);
+            return { question: `Area of circle radius ${r} (π=3.14)`, answer: `${parseFloat(ans)}` };
+        }
+    ];
+    return templates[Math.floor(Math.random() * templates.length)]();
+}
+
+function generateGrade8() {
+    const templates = [
+        () => { // Roots
+            const roots = [16, 25, 36, 49, 64, 81, 100, 121, 144];
+            const x = roots[Math.floor(Math.random() * roots.length)];
+            return { question: `√${x}`, answer: `${Math.sqrt(x)}` };
+        },
+        () => { // Exponents
+            const y = getRandomInt(2, 6);
+            return { question: `${y}³`, answer: `${y * y * y}` };
+        },
+        () => { // Scientific Notation
+            const base = getRandomInt(1, 9);
+            const zeros = getRandomInt(3, 6);
+            const val = base * Math.pow(10, zeros);
+            return { question: `${val} in scientific notation (e.g. 5*10^4)`, answer: `${base}*10^${zeros}` };
+        },
+        () => { // Slope
+            const x1 = getRandomInt(1, 5);
+            const y1 = getRandomInt(1, 10);
+            const slope = getRandomInt(1, 5);
+            const x2 = x1 + getRandomInt(1, 3);
+            const y2 = y1 + slope * (x2 - x1);
+            return { question: `Slope through (${x1},${y1}) and (${x2},${y2})`, answer: `${slope}` };
+        },
+        () => { // Pythagorean
+            const triples = [[3,4,5], [5,12,13], [8,15,17]];
+            const t = triples[Math.floor(Math.random() * triples.length)];
+            const m = getRandomInt(1, 3);
+            return { question: `Right triangle legs ${t[0]*m} and ${t[1]*m}. Hypotenuse?`, answer: `${t[2]*m}` };
+        }
+    ];
+    return templates[Math.floor(Math.random() * templates.length)]();
 }
 
 function generateQuestion() {
-    let type = gameConfig.cat;
-    if (type === 'mixed') type = Math.random() < 0.5 ? 'bodmas' : 'fractions';
-    return type === 'bodmas' ? generateBodmas() : generateFraction();
+    const level = Math.floor(gradeLevel);
+    if (level === 4) return generateGrade4();
+    if (level === 5) return generateGrade5();
+    if (level === 6) return generateGrade6();
+    if (level === 7) return generateGrade7();
+    if (level >= 8) return generateGrade8();
+    return generateGrade4();
 }
 
+
 // --- Logic Helpers ---
+
 function generateDistractors(correctAnswer) {
     const distractors = new Set();
     let isFraction = correctAnswer.includes('/');
+    let isDecimal = correctAnswer.includes('.');
+    
     while(distractors.size < 3) {
         if (isFraction) {
             let parts = correctAnswer.split('/');
@@ -149,9 +272,17 @@ function generateDistractors(correctAnswer) {
             if (fakeDen <= 0) fakeDen = 2;
             let fakeAns = formatFraction(fakeNum, fakeDen);
             if (fakeAns !== correctAnswer && fakeAns !== "undefined") distractors.add(fakeAns);
+        } else if (isDecimal) {
+            let ansFloat = parseFloat(correctAnswer);
+            let offset = getRandomInt(-5, 5) / 10;
+            if (offset === 0) offset = 0.5;
+            let fakeAns = (ansFloat + offset).toFixed(2);
+            fakeAns = parseFloat(fakeAns).toString(); // remove trailing zeros
+            if (fakeAns !== correctAnswer) distractors.add(fakeAns);
         } else {
             let ansInt = parseInt(correctAnswer);
-            let offset = getRandomInt(-5, 5) || 1;
+            let offset = getRandomInt(-5, 5);
+            if (offset === 0) offset = 1;
             if (Math.random() < 0.2) offset *= 10;
             let fakeAns = (ansInt + offset).toString();
             if (fakeAns !== correctAnswer) distractors.add(fakeAns);
@@ -159,6 +290,7 @@ function generateDistractors(correctAnswer) {
     }
     return Array.from(distractors);
 }
+
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -334,14 +466,11 @@ let isLoginMode = true;
 
     // Config Inputs
     const modeSelect = document.getElementById("mode-select");
-    const diffSelect = document.getElementById("diff-select");
-    const catSelect = document.getElementById("cat-select");
-
+        
     // Game UI
     const questionEl = document.getElementById("question");
     const scoreDisplay = document.getElementById("score-display");
-    const comboDisplay = document.getElementById("combo-display");
-    const highScoreDisplay = document.getElementById("high-score-display");
+        const highScoreDisplay = document.getElementById("high-score-display");
     const livesDisplay = document.getElementById("lives-display");
     const feedbackMsg = document.getElementById("feedback-message");
     const nextQuestionBtn = document.getElementById("next-question-btn");
@@ -359,8 +488,10 @@ let isLoginMode = true;
 
     highScoreDisplay.textContent = `High Score: ${stats.highScore}`;
 
+
     function updateStatsUI() {
         scoreDisplay.innerHTML = `Score: ${score} <span id="combo-display" class="${streak >= 3 ? '' : 'hidden'}">🔥 x${Math.floor(streak/3)+1}</span>`;
+        document.getElementById('grade-display').textContent = `Grade: ${Math.floor(gradeLevel)}`;
         if (gameConfig.mode === 'survival') {
             let hearts = ""; for(let i=0; i<lives; i++) hearts += "❤️";
             livesDisplay.textContent = `Lives: ${hearts}`;
@@ -368,6 +499,7 @@ let isLoginMode = true;
             livesDisplay.textContent = `Time: ${timeLeft}s`;
         }
     }
+
 
     function changeMascot(state) {
         // state: 'idle', 'correct', 'incorrect'
@@ -434,6 +566,7 @@ let isLoginMode = true;
         saveStats();
     }
 
+
     function handleAnswer(userAnswer) {
         if(currentMode === 'mcq') mcqBtns.forEach(btn => btn.disabled = true);
         
@@ -444,6 +577,14 @@ let isLoginMode = true;
         if (cleanAns === currentQuestion.answer) {
             stats.totalCorrect++;
             streak++;
+            consecutiveCorrect++;
+            consecutiveWrong = 0;
+            
+            if (consecutiveCorrect >= 5) {
+                gradeLevel = Math.min(8.0, gradeLevel + 1.0);
+                consecutiveCorrect = 0; // Reset after leveling up
+            }
+
             if (streak > stats.highestStreak) stats.highestStreak = streak;
             
             let multiplier = Math.floor(streak / 3) + 1; // Combo multiplier
@@ -455,6 +596,14 @@ let isLoginMode = true;
             changeMascot('correct');
         } else {
             streak = 0;
+            consecutiveWrong++;
+            consecutiveCorrect = 0;
+
+            if (consecutiveWrong >= 2) {
+                gradeLevel = Math.max(4.0, gradeLevel - 0.5);
+                consecutiveWrong = 0; // Reset after leveling down
+            }
+
             if (gameConfig.mode === 'survival') lives -= 1;
             else timeLeft -= 5; // penalty in time mode
             
@@ -483,22 +632,26 @@ let isLoginMode = true;
         }
     }
 
+
     nextQuestionBtn.addEventListener("click", () => {
         setNextQuestion();
     });
 
     // --- Events ---
+
     startBtn.addEventListener("click", () => {
         initAudio();
         gameConfig.mode = modeSelect.value;
-        gameConfig.diff = diffSelect.value;
-        gameConfig.cat = catSelect.value;
         
         score = 0; streak = 0;
+        gradeLevel = 4.0;
+        consecutiveCorrect = 0;
+        consecutiveWrong = 0;
         feedbackMsg.textContent = "";
         feedbackMsg.className = "";
         nextQuestionBtn.classList.add("hidden");
         lives = 3; timeLeft = 60;
+
         
         if (gameConfig.mode === 'time') {
             timerInterval = setInterval(() => {
@@ -546,9 +699,11 @@ let isLoginMode = true;
         if (numpadDisplay.textContent.length > 0) handleAnswer(numpadDisplay.textContent);
     });
 
+
     document.addEventListener("keydown", (e) => {
         if (gameScreen.classList.contains("hidden") || currentMode !== 'numpad') return;
-        const validKeys = ['0','1','2','3','4','5','6','7','8','9','-','/'];
+        const validKeys = ['0','1','2','3','4','5','6','7','8','9','-','/','.'];
+
         if (validKeys.includes(e.key)) numpadDisplay.textContent += e.key;
         else if (e.key === "Backspace") numpadDisplay.textContent = numpadDisplay.textContent.slice(0, -1);
         else if (e.key === "Enter" && numpadDisplay.textContent.length > 0) handleAnswer(numpadDisplay.textContent);
