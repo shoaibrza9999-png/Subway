@@ -104,18 +104,7 @@ function generateGrade4() {
             const x = getRandomInt(100, 9999);
             const rounded = Math.round(x / 100) * 100;
             return { question: `Round ${x} to nearest 100`, answer: `${rounded}` };
-        }
-    ];
-    return templates[Math.floor(Math.random() * templates.length)]();
-}
-
-function generateGrade5() {
-    const templates = [
-        () => { // Decimal Addition
-            const x = getRandomInt(10, 99) / 10;
-            const y = getRandomInt(100, 999) / 100;
-            const ans = (x + y).toFixed(2);
-            return { question: `${x.toFixed(1)} + ${y.toFixed(2)}`, answer: `${parseFloat(ans)}` }; // Avoid trailing zeros
+            return { question: `${x.toFixed(1)} + ${y.toFixed(2)}`, answer: `${parseFloat(ans)}` }; 
         },
         () => { // Fraction Addition
             const dens = [2, 3, 4, 5, 6, 8];
@@ -139,41 +128,10 @@ function generateGrade5() {
             const c = getRandomInt(2, 10);
             const d = getRandomInt(1, a * (b + c) - 1);
             return { question: `${a} × (${b} + ${c}) - ${d}`, answer: `${a * (b + c) - d}` };
-        }
-    ];
-    return templates[Math.floor(Math.random() * templates.length)]();
-}
-
-function generateGrade6() {
-    const templates = [
-        () => { // Ratios
-            const common = getRandomInt(2, 5);
-            const a = getRandomInt(1, 6) * common;
-            const b = getRandomInt(1, 6) * common;
-            const factor = gcd(a, b);
-            return { question: `Ratio ${a}:${b} in simplest form`, answer: `${a/factor}/${b/factor}` };
         },
-        () => { // Percentages
-            const p = [10, 20, 25, 50, 75][Math.floor(Math.random() * 5)];
-            const x = getRandomInt(2, 15) * 10;
-            return { question: `${p}% of ${x}`, answer: `${(p * x) / 100}` };
-        },
-        () => { // Negative Integers
-            const x = getRandomInt(1, 20);
-            const y = getRandomInt(1, 20);
-            return { question: `-${x} - (-${y})`, answer: `${-x + y}` };
-        },
-        () => { // One-Step Equations
-            const a = getRandomInt(1, 50);
-            const ans = getRandomInt(1, 50);
-            const b = ans + a;
-            return { question: `Solve for x: x + ${a} = ${b}`, answer: `${ans}` };
-        },
-        () => { // Median
-            let arr = [];
-            for(let i=0; i<5; i++) arr.push(getRandomInt(1, 20));
-            arr.sort((a,b) => a-b);
-            return { question: `Median of ${arr.join(', ')}`, answer: `${arr[2]}` };
+        () => { // Complementary Angles
+            const a = getRandomInt(10, 80);
+            return { question: `Complement of ${a}° angle`, answer: `${90 - a}` };
         }
     ];
     return templates[Math.floor(Math.random() * templates.length)]();
@@ -202,41 +160,21 @@ function generateGrade7() {
             const r = getRandomInt(1, 10);
             const ans = (3.14 * r * r).toFixed(2);
             return { question: `Area of circle radius ${r} (π=3.14)`, answer: `${parseFloat(ans)}` };
-        }
-    ];
-    return templates[Math.floor(Math.random() * templates.length)]();
-}
-
-function generateGrade8() {
-    const templates = [
-        () => { // Roots
-            const roots = [16, 25, 36, 49, 64, 81, 100, 121, 144];
-            const x = roots[Math.floor(Math.random() * roots.length)];
-            return { question: `√${x}`, answer: `${Math.sqrt(x)}` };
         },
-        () => { // Exponents
-            const y = getRandomInt(2, 6);
-            return { question: `${y}³`, answer: `${y * y * y}` };
+        () => { // Cube Roots
+            const cubes = {8:2, 27:3, 64:4, 125:5, 216:6};
+            const keys = Object.keys(cubes);
+            const val = keys[Math.floor(Math.random() * keys.length)];
+            return { question: `Cube root of ${val}`, answer: `${cubes[val]}` };
         },
-        () => { // Scientific Notation
-            const base = getRandomInt(1, 9);
-            const zeros = getRandomInt(3, 6);
-            const val = base * Math.pow(10, zeros);
-            return { question: `${val} in scientific notation (e.g. 5*10^4)`, answer: `${base}*10^${zeros}` };
-        },
-        () => { // Slope
-            const x1 = getRandomInt(1, 5);
-            const y1 = getRandomInt(1, 10);
-            const slope = getRandomInt(1, 5);
-            const x2 = x1 + getRandomInt(1, 3);
-            const y2 = y1 + slope * (x2 - x1);
-            return { question: `Slope through (${x1},${y1}) and (${x2},${y2})`, answer: `${slope}` };
-        },
-        () => { // Pythagorean
-            const triples = [[3,4,5], [5,12,13], [8,15,17]];
-            const t = triples[Math.floor(Math.random() * triples.length)];
-            const m = getRandomInt(1, 3);
-            return { question: `Right triangle legs ${t[0]*m} and ${t[1]*m}. Hypotenuse?`, answer: `${t[2]*m}` };
+        () => { // Variables on both sides
+            const ans = getRandomInt(1, 10);
+            const a = getRandomInt(2, 5);
+            const b = getRandomInt(1, 10);
+            const c = getRandomInt(1, 3);
+            // ax + b = cx + d => d = ax + b - cx
+            const d = (a * ans) + b - (c * ans);
+            return { question: `Solve for x: ${a}x + ${b} = ${c}x + ${d}`, answer: `${ans}` };
         }
     ];
     return templates[Math.floor(Math.random() * templates.length)]();
